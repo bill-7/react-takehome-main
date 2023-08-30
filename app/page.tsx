@@ -1,5 +1,6 @@
 'use client'
 
+import { ViewportCoords } from '@/components/canvas/Examples'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import { Suspense, useRef, useState } from 'react'
@@ -27,13 +28,8 @@ const Common = dynamic(() => import('@/components/canvas/View').then((mod) => mo
 
 export default function Page() {
   const [savedImages, setSavedImages] = useState<string[]>([])
-  const [capture, setCapture] = useState(false)
-  const [dogViewport, setDogViewport] = useState(null)
-
-  const handleSaveImage = (imageUrl: string) => {
-    setCapture(false)
-    setSavedImages((prevImages) => [...prevImages, imageUrl])
-  }
+  const [dogViewport, setDogViewport] = useState<ViewportCoords>()
+  const captureRef = useRef(false)
 
   return (
     <>
@@ -58,9 +54,9 @@ export default function Page() {
           <View orbit className='relative h-full sm:w-full'>
             <Suspense fallback={null}>
               <Dog
-                doCapture={capture}
+                captureRef={captureRef}
                 viewport={dogViewport}
-                saveImage={handleSaveImage}
+                saveImage={(imageUrl: string) => setSavedImages((prevImages) => [...prevImages, imageUrl])}
                 scale={2}
                 position={[0, -1.6, 0]}
                 rotation={[0.0, -0.3, 0]}
@@ -77,8 +73,8 @@ export default function Page() {
           <div
             className='w-fit rounded-md border border-blue-400 p-2 text-blue-500 hover:cursor-pointer hover:bg-blue-50'
             onClick={() => {
-              setDogViewport(document.querySelector('.dog').getBoundingClientRect())
-              setCapture(true)
+              setDogViewport(document.querySelector('.dog')?.getBoundingClientRect())
+              captureRef.current = true
             }}
           >
             Generate
@@ -89,8 +85,26 @@ export default function Page() {
         <div className='mx-auto flex w-full flex-col flex-wrap items-center md:flex-row lg:w-4/5'>
           <div className='mx-auto grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:w-4/5 xl:grid-cols-6'>
             {[...savedImages, ...new Array(12 - savedImages.length).fill(null)].map((image, i) => (
-              <div key={i} className={`h-32 w-32 rounded-md ${image ? 'relative' : 'bg-white'}`}>
-                {image && <Image src={image} alt={`Generated Screenshot ${i}`} width={128} height={128} />}
+              <div key={i} className='h-32 w-32 rounded-md bg-white'>
+                {image && (
+                  <div className='relative'>
+                    <Image
+                      src={image}
+                      alt={`Generated Screenshot ${i}`}
+                      width={0}
+                      height={0}
+                      className='h-32 w-32 object-cover'
+                    />
+                    <div
+                      className='absolute right-2 top-2 text-2xl text-white hover:cursor-pointer'
+                      onClick={() => {
+                        setSavedImages((prevImages) => prevImages.filter((_, j) => j !== i))
+                      }}
+                    >
+                      ×
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>

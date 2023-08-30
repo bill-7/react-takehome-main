@@ -31,25 +31,43 @@ export function Duck(props) {
   return <primitive object={scene} {...props} />
 }
 
-function cropBase64Image(base64, x, y, width, height, saveImage) {
+function cropBase64Image(base64: string, vp: ViewportCoords, saveImage: (image: string) => void) {
   const img = new Image()
   img.src = base64.startsWith('data:image') ? base64 : `data:image/png;base64,${base64}`
   img.onload = () => {
     const canvas = document.createElement('canvas')
-    canvas.width = width
-    canvas.height = height
-    canvas.getContext('2d').drawImage(img, x, y, width, height, 0, 0, width, height)
+    canvas.width = vp.width
+    canvas.height = vp.height
+    canvas.getContext('2d')?.drawImage(img, vp.x, vp.y, vp.width, vp.height, 0, 0, vp.width, vp.height)
     saveImage(canvas.toDataURL())
   }
 }
 
-export function Dog({ doCapture, saveImage, viewport, ...props }) {
+export function Dog({ captureRef, saveImage, viewport, ...props }: DogProps) {
   useFrame(({ gl, scene, camera }) => {
     gl.render(scene, camera)
-    if (!doCapture) return
-    cropBase64Image(gl.domElement.toDataURL(), viewport.x, viewport.y, viewport.width, viewport.height, saveImage)
+    if (captureRef.current) {
+      captureRef.current = false
+      viewport && cropBase64Image(gl.domElement.toDataURL(), viewport, saveImage)
+    }
   }, 1)
 
   const { scene } = useGLTF('/dog.glb')
   return <primitive object={scene} {...props} />
+}
+
+export type ViewportCoords = {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
+export type DogProps = {
+  captureRef: React.MutableRefObject<boolean>
+  saveImage: (image: string) => void
+  viewport?: ViewportCoords
+  scale?: number
+  position?: [number, number, number]
+  rotation?: [number, number, number]
 }
