@@ -31,6 +31,9 @@ export default function Page() {
   const [selectedAnimal, setSelectedAnimal] = useState<'duck' | 'dog'>('dog')
   const captureRef = useRef(false)
 
+  const [isModalOpen, setModalOpen] = useState(false)
+  const [modalImage, setModalImage] = useState<string>('')
+
   return (
     <>
       <div className='bg-gray-100'>
@@ -71,16 +74,16 @@ export default function Page() {
           <p className='mb-8 text-gray-600'>
             Drag, scroll, pinch, and rotate the canvas to frame your image, and then when you're happy, hit generate.
           </p>
-          <div
-            className='w-fit rounded-md border border-gray-500 p-2 text-gray-600 hover:cursor-pointer hover:bg-gray-50'
+          <button
+            className='mr-2 w-fit rounded-md border border-gray-500 p-2 text-gray-600  hover:bg-gray-50'
             onClick={() => {
               setSelectedAnimal(selectedAnimal === 'dog' ? 'duck' : 'dog')
             }}
           >
             Switch to {selectedAnimal === 'dog' ? 'duck 🦆' : 'dog 🐕'}
-          </div>
+          </button>
           <button
-            className='mt-2 w-fit rounded-md border border-blue-400 p-2 text-blue-500  hover:cursor-pointer hover:bg-blue-50 disabled:cursor-not-allowed disabled:bg-white disabled:opacity-50'
+            className='mt-2 w-fit rounded-md border border-blue-400 p-2 text-blue-500  hover:bg-blue-50 disabled:cursor-not-allowed disabled:bg-white disabled:opacity-50'
             disabled={savedImages.length >= 12}
             onClick={() => {
               setAnimalViewport(document.querySelector('.animal')?.getBoundingClientRect())
@@ -95,34 +98,66 @@ export default function Page() {
         <div className='mx-auto flex w-full flex-col flex-wrap items-center md:flex-row lg:w-4/5'>
           <div className='mx-auto grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:w-4/5 xl:grid-cols-6'>
             {Array.from({ length: 12 }, (_, i) => savedImages[i] || null).map((image, i) => (
-              <div key={i} className='group h-32 w-32 rounded-md bg-white'>
+              <div key={i} className='group relative h-32 w-32 rounded-md bg-white'>
                 {image && (
-                  <div className='relative'>
+                  <>
                     <Image
                       onClick={() => {
-                        // openModal(image)
+                        setModalOpen(true)
+                        setModalImage(image)
                       }}
                       src={image}
                       alt={`Generated Screenshot ${i}`}
                       width={0}
                       height={0}
-                      className='h-32 w-32 rounded-md object-cover'
+                      className='h-32 w-32 rounded-md object-cover hover:cursor-pointer'
                     />
-                    <div
-                      className='absolute right-2 top-0 text-2xl text-white opacity-0 hover:cursor-pointer group-hover:opacity-100'
+                    <button
+                      className='absolute right-2 top-0 text-2xl text-white opacity-0 group-hover:opacity-100'
                       onClick={() => {
                         setSavedImages((prevImages) => prevImages.filter((_, j) => j !== i))
                       }}
                     >
                       ×
-                    </div>
-                  </div>
+                    </button>
+                  </>
                 )}
               </div>
             ))}
           </div>
         </div>
       </div>
+      {isModalOpen && <Modal image={modalImage} onClose={() => setModalOpen(false)} />}
     </>
+  )
+}
+
+function Modal({ image, onClose }: { image: string; onClose: () => void }) {
+  return (
+    <div className='relative z-10' aria-labelledby='modal-title' role='dialog' aria-modal='true'>
+      <div className='fixed inset-0 bg-gray-50/75 transition-opacity'></div>
+      <div className='fixed inset-0 z-10 overflow-y-auto'>
+        <div className='flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0'>
+          <div className='relative overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg'>
+            <div className='sm:flex sm:items-start'>
+              <Image src={image} alt={`Generated Screenshot`} width={0} height={0} className='h-full w-full' />
+            </div>
+            <div className='bg-gray-50 p-3 sm:flex sm:flex-row-reverse '>
+              <button className='ml-2 inline-flex w-auto justify-center rounded-md border border-blue-400 p-2  text-blue-500 hover:bg-blue-50'>
+                <a download='InstaGen.png' href={image}>
+                  Download
+                </a>
+              </button>
+              <button
+                onClick={onClose}
+                className='inline-flex w-auto justify-center rounded-md border border-gray-400 p-2 text-gray-500 hover:bg-gray-50'
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }

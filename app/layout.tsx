@@ -6,7 +6,7 @@ export const metadata = {
   description: 'A social media app to post your AI generated images',
 }
 
-export default function RootLayout({ children }) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang='en' className='antialiased'>
       {/*
