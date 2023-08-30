@@ -79,15 +79,16 @@ export default function Page() {
           >
             Switch to {selectedAnimal === 'dog' ? 'duck 🦆' : 'dog 🐕'}
           </div>
-          <div
-            className='mt-2 w-fit rounded-md border border-blue-400 p-2 text-blue-500 hover:cursor-pointer hover:bg-blue-50'
+          <button
+            className='mt-2 w-fit rounded-md border border-blue-400 p-2 text-blue-500  hover:cursor-pointer hover:bg-blue-50 disabled:cursor-not-allowed disabled:bg-white disabled:opacity-50'
+            disabled={savedImages.length >= 12}
             onClick={() => {
               setAnimalViewport(document.querySelector('.animal')?.getBoundingClientRect())
               captureRef.current = true
             }}
           >
             Generate
-          </div>
+          </button>
         </div>
       </div>
       <div className='bg-gray-100 p-8'>
