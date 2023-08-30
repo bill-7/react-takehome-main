@@ -94,11 +94,14 @@ export default function Page() {
       <div className='bg-gray-100 p-8'>
         <div className='mx-auto flex w-full flex-col flex-wrap items-center md:flex-row lg:w-4/5'>
           <div className='mx-auto grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:w-4/5 xl:grid-cols-6'>
-            {[...savedImages, ...new Array(12 - savedImages.length).fill(null)].map((image, i) => (
-              <div key={i} className='h-32 w-32 rounded-md bg-white'>
+            {Array.from({ length: 12 }, (_, i) => savedImages[i] || null).map((image, i) => (
+              <div key={i} className='group h-32 w-32 rounded-md bg-white'>
                 {image && (
                   <div className='relative'>
                     <Image
+                      onClick={() => {
+                        // openModal(image)
+                      }}
                       src={image}
                       alt={`Generated Screenshot ${i}`}
                       width={0}
@@ -106,7 +109,7 @@ export default function Page() {
                       className='h-32 w-32 rounded-md object-cover'
                     />
                     <div
-                      className='absolute right-2 top-0 text-2xl text-white hover:cursor-pointer'
+                      className='absolute right-2 top-0 text-2xl text-white opacity-0 hover:cursor-pointer group-hover:opacity-100'
                       onClick={() => {
                         setSavedImages((prevImages) => prevImages.filter((_, j) => j !== i))
                       }}
