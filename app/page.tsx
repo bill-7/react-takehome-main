@@ -6,9 +6,8 @@ import Image from 'next/image'
 import { Suspense, useRef, useState } from 'react'
 
 const Blob = dynamic(() => import('@/components/canvas/Examples').then((mod) => mod.Blob), { ssr: false })
-const Dog = dynamic(() => import('@/components/canvas/Examples').then((mod) => mod.Dog), { ssr: false })
+const Animal = dynamic(() => import('@/components/canvas/Examples').then((mod) => mod.Animal), { ssr: false })
 // Use later in the task, if you'd like
-const Duck = dynamic(() => import('@/components/canvas/Examples').then((mod) => mod.Duck), { ssr: false })
 const View = dynamic(() => import('@/components/canvas/View').then((mod) => mod.View), {
   ssr: false,
   loading: () => (
@@ -28,7 +27,8 @@ const Common = dynamic(() => import('@/components/canvas/View').then((mod) => mo
 
 export default function Page() {
   const [savedImages, setSavedImages] = useState<string[]>([])
-  const [dogViewport, setDogViewport] = useState<ViewportCoords>()
+  const [animalViewport, setAnimalViewport] = useState<ViewportCoords>()
+  const [selectedAnimal, setSelectedAnimal] = useState<'duck' | 'dog'>('dog')
   const captureRef = useRef(false)
 
   return (
@@ -50,12 +50,13 @@ export default function Page() {
       </div>
 
       <div className='mx-auto flex w-full flex-col flex-wrap items-center px-12 md:flex-row lg:w-4/5'>
-        <div className='dog relative h-96 w-full py-8 sm:w-1/2'>
-          <View orbit className='relative h-full sm:w-full'>
+        <div className='relative h-96 w-full py-8 sm:w-1/2'>
+          <View orbit className='animal relative h-full sm:w-full'>
             <Suspense fallback={null}>
-              <Dog
+              <Animal
+                animal={selectedAnimal}
                 captureRef={captureRef}
-                viewport={dogViewport}
+                viewport={animalViewport}
                 saveImage={(imageUrl: string) => setSavedImages((prevImages) => [...prevImages, imageUrl])}
                 scale={2}
                 position={[0, -1.6, 0]}
@@ -71,9 +72,17 @@ export default function Page() {
             Drag, scroll, pinch, and rotate the canvas to frame your image, and then when you're happy, hit generate.
           </p>
           <div
-            className='w-fit rounded-md border border-blue-400 p-2 text-blue-500 hover:cursor-pointer hover:bg-blue-50'
+            className='w-fit rounded-md border border-gray-500 p-2 text-gray-600 hover:cursor-pointer hover:bg-gray-50'
             onClick={() => {
-              setDogViewport(document.querySelector('.dog')?.getBoundingClientRect())
+              setSelectedAnimal(selectedAnimal === 'dog' ? 'duck' : 'dog')
+            }}
+          >
+            Switch to {selectedAnimal === 'dog' ? 'duck 🦆' : 'dog 🐕'}
+          </div>
+          <div
+            className='mt-2 w-fit rounded-md border border-blue-400 p-2 text-blue-500 hover:cursor-pointer hover:bg-blue-50'
+            onClick={() => {
+              setAnimalViewport(document.querySelector('.animal')?.getBoundingClientRect())
               captureRef.current = true
             }}
           >
@@ -93,10 +102,10 @@ export default function Page() {
                       alt={`Generated Screenshot ${i}`}
                       width={0}
                       height={0}
-                      className='h-32 w-32 object-cover'
+                      className='h-32 w-32 rounded-md object-cover'
                     />
                     <div
-                      className='absolute right-2 top-2 text-2xl text-white hover:cursor-pointer'
+                      className='absolute right-2 top-0 text-2xl text-white hover:cursor-pointer'
                       onClick={() => {
                         setSavedImages((prevImages) => prevImages.filter((_, j) => j !== i))
                       }}

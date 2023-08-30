@@ -23,14 +23,6 @@ export const Blob = ({ route = '/posts', ...props }) => {
   )
 }
 
-export function Duck(props) {
-  const { scene } = useGLTF('/duck.glb')
-
-  useFrame((delta) => (scene.rotation.y += delta))
-
-  return <primitive object={scene} {...props} />
-}
-
 function cropBase64Image(base64: string, vp: ViewportCoords, saveImage: (image: string) => void) {
   const img = new Image()
   img.src = base64.startsWith('data:image') ? base64 : `data:image/png;base64,${base64}`
@@ -43,17 +35,17 @@ function cropBase64Image(base64: string, vp: ViewportCoords, saveImage: (image: 
   }
 }
 
-export function Dog({ captureRef, saveImage, viewport, ...props }: DogProps) {
+export function Animal({ animal, captureRef, saveImage, viewport, ...props }: AnimalProps) {
   useFrame(({ gl, scene, camera }) => {
     gl.render(scene, camera)
-    if (captureRef.current) {
-      captureRef.current = false
-      viewport && cropBase64Image(gl.domElement.toDataURL(), viewport, saveImage)
-    }
+    if (!captureRef.current || !viewport) return
+    captureRef.current = false
+    cropBase64Image(gl.domElement.toDataURL(), viewport, saveImage)
   }, 1)
 
-  const { scene } = useGLTF('/dog.glb')
-  return <primitive object={scene} {...props} />
+  const { scene: dog } = useGLTF('/dog.glb')
+  const { scene: duck } = useGLTF('/duck.glb')
+  return <primitive object={animal === 'dog' ? dog : duck} {...props} />
 }
 
 export type ViewportCoords = {
@@ -63,7 +55,8 @@ export type ViewportCoords = {
   height: number
 }
 
-export type DogProps = {
+export type AnimalProps = {
+  animal: 'dog' | 'duck'
   captureRef: React.MutableRefObject<boolean>
   saveImage: (image: string) => void
   viewport?: ViewportCoords
